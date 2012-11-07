@@ -1,0 +1,6 @@
+import ecore;
+
+String modifyWarningComment() : "Generated Class. Do not modify!\n * \n * @author MDSDACP Team - goetzfred@fh-bingen.de \n * @date " + date();
+String date() : JAVA de.mdsdacp.logic.Date.getCurrentDate();
+
+String tableComment(EClassifier this) : "This interface represents the columns and SQLite statements for the "+name+"Table.\n * This table is represented in the sqlite database as "+ name+ " column.\n * "; 

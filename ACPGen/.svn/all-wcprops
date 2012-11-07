@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 29
+/svn/!svn/ver/46/trunk/ACPGen
+END
+.classpath
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/6/trunk/ACPGen/.classpath
+END
+.project
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/!svn/ver/5/trunk/ACPGen/.project
+END
+.gitignore
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/5/trunk/ACPGen/.gitignore
+END
+build.properties
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/5/trunk/ACPGen/build.properties
+END

@@ -1,0 +1,3 @@
+cached String getPackageName(String uri) : JAVA de.mdsdacp.logic.PackageName.getNameByURI(java.lang.String);
+
+cached String getPackagePath(String uri) : JAVA de.mdsdacp.logic.PackageName.getPathByURI(java.lang.String);

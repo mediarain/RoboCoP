@@ -1,0 +1,360 @@
+«IMPORT ecore»
+
+«EXTENSION de::mdsdacp::template::extensions::DefaultComments»
+«EXTENSION de::mdsdacp::template::extensions::PackageName»
+«EXTENSION de::mdsdacp::template::extensions::Logic»
+
+«DEFINE root FOR EPackage»
+	«FILE getPackagePath(nsURI)+"/contentprovider/Provider.java"-»
+	«EXPAND findReferences FOREACH eClassifiers»
+	package «getPackageName(nsURI)».contentprovider;
+	
+	import «getPackageName(nsURI)».database.Database;
+	«IF !eClassifiers.isEmpty»
+	import «getPackageName(nsURI)».database.tables.*;
+	
+	import android.provider.BaseColumns;
+	import android.text.TextUtils;		
+	import android.content.ContentUris;
+	import android.database.sqlite.SQLiteQueryBuilder;
+	«ENDIF»
+	import android.content.ContentProvider;
+	import android.content.ContentValues;
+	import android.content.UriMatcher;	
+	import android.database.Cursor;	
+	import android.database.sqlite.SQLiteDatabase;
+	import android.net.Uri;
+	import android.util.Log;	
+	
+	/**
+	 * Content provider implementation
+	 * The authority of the content provider is: content://«getPackageName(nsURI)».provider.«name»
+	 * 
+	 * More information about content providers:
+	 * @see <a href="http://developer.android.com/reference/android/content/ContentProvider.html">Reference</a>
+	 * @see <a href="http://developer.android.com/guide/topics/providers/content-providers.html">Tutorial</a>
+	 * @see <a href="http://developer.android.com/guide/topics/testing/contentprovider_testing.html">Content Provider Testing</a>
+	 *
+	 * «modifyWarningComment()»
+	 */	
+	public class Provider extends ContentProvider {
+		private static final String TAG = "«getPackageName(nsURI)».contentprovider.Provider";
+	
+		public static final String AUTHORITY = "«getPackageName(nsURI)».provider.«name»";
+		public static final Uri AUTHORITY_URI = Uri.parse("content://" + AUTHORITY);
+
+		«EXPAND contentUri FOREACH eClassifiers»
+
+		private static final UriMatcher URI_MATCHER;
+    	
+    	private Database db;
+    	
+    	«LET eClassifiers.size AS classCount»
+    	
+    	
+	    	«FOREACH eClassifiers AS class ITERATOR iter-»
+	    		«IF iter.firstIteration-»
+					private static final int «class.name.toUpperCase()»_DIR = «iter.counter0»;
+				«ELSE-»
+					private static final int «class.name.toUpperCase()»_DIR = «iter.counter0*2»;
+				«ENDIF-»			
+				«IF iter.firstIteration-»
+					private static final int «class.name.toUpperCase()»_ID = «iter.counter1»;
+				«ELSE-»
+					private static final int «class.name.toUpperCase()»_ID = «iter.counter1+iter.counter1-1»;
+				«ENDIF-»									
+	    	«ENDFOREACH»   
+    	//constants for join tables
+    	
+    		«FOREACH getReferences(name.toString()) AS ref ITERATOR iter-»
+				String «ref.toString().toUpperCase()»_ID = "«ref.toString().toLowerCase()»id";		
+			«ENDFOREACH»
+    	«ENDLET»   
+    	 	
+		static {
+			URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
+			«EXPAND uriMatcher FOREACH eClassifiers-»
+    	}    	 	
+    	 	
+		«EXPAND contentTypes FOREACH eClassifiers»    	 	
+    	 	
+		«EXPAND onCreate»
+		«EXPAND getType»
+		«EXPAND insert»
+		«EXPAND update»
+		«EXPAND delete»
+		«EXPAND query»		    	
+	}
+	«ENDFILE»
+	«clearRefernces()»
+«ENDDEFINE»
+
+«DEFINE findReferences FOR EClassifier»
+	«FOREACH eContents.typeSelect(EReference) AS columns-»				
+		«putReference(columns.eType.name.toString(),name)»						
+	«ENDFOREACH»
+«ENDDEFINE»
+
+«DEFINE contentUri FOR EClassifier»
+public static final Uri «name.toUpperCase()»_CONTENT_URI = Uri.withAppendedPath(Provider.AUTHORITY_URI, «name.toFirstUpper()»Content.CONTENT_PATH);
+«ENDDEFINE»
+
+
+
+«DEFINE contentTypes FOR EClassifier»
+/**
+ * Provides the content information of the «name.toFirstUpper()»Table.
+ * 
+ * CONTENT_PATH: «name.toLowerCase()» (String)
+ * CONTENT_TYPE: vnd.android.cursor.dir/vnd.mdsdacp.«name.toLowerCase()» (String)
+ * CONTENT_ITEM_TYPE: vnd.android.cursor.item/vnd.mdsdacp.«name.toLowerCase()» (String)
+ * ALL_COLUMNS: Provides the same information as «name.toFirstUpper()»Table.ALL_COLUMNS (String[])
+ */
+public static final class «name.toFirstUpper()»Content implements BaseColumns {
+	/**
+	 * Specifies the content path of the «name.toFirstUpper()»Table for the required uri
+	 * Exact URI: content://«getPackageName(ePackage.nsURI)».provider.«ePackage.name»/«name.toLowerCase()»
+	 */
+    public static final String CONTENT_PATH = "«name.toLowerCase()»";
+
+	/**
+	 * Specifies the type for the folder and the single item of the «name.toFirstUpper()»Table  
+	 */
+    public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.mdsdacp.«name.toLowerCase()»";
+    public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.mdsdacp.«name.toLowerCase()»";
+
+	/**
+	 * Contains all columns of the «name.toFirstUpper()»Table
+	 */
+    public static final String[] ALL_COLUMNS = «name.toFirstUpper()»Table.ALL_COLUMNS;
+}
+«ENDDEFINE»
+
+«DEFINE uriMatcher FOR EClassifier-»
+	URI_MATCHER.addURI(AUTHORITY, «name.toFirstUpper()»Content.CONTENT_PATH, «name.toUpperCase()»_DIR);
+    URI_MATCHER.addURI(AUTHORITY, «name.toFirstUpper()»Content.CONTENT_PATH + "/#", «name.toUpperCase()»_ID);
+«ENDDEFINE»
+
+«DEFINE query FOR EPackage»
+/**
+ * Executes a query on a given uri and returns a Cursor with results.
+ *
+ * @param uri from type Uri
+ * @param projection from type String[]
+ * @param selection from type String 
+ * @param selectionArgs from type String[]
+ * @param sortOrder from type String
+ *
+ * @return cursor with results from type Cursor
+ */
+@Override
+public final Cursor query(final Uri uri, final String[] projection, final String selection, final String[] selectionArgs, final String sortOrder) {
+	«IF !eClassifiers.isEmpty»
+	final SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
+	final SQLiteDatabase dbConnection = db.getReadableDatabase();
+
+    switch (URI_MATCHER.match(uri)) {
+    «EXPAND queryCases FOREACH eClassifiers-»
+	default:		
+    	throw new IllegalArgumentException("Unsupported URI:" + uri);
+	}
+	
+	Cursor cursor = queryBuilder.query(dbConnection, projection, selection, selectionArgs, null, null, sortOrder);
+    cursor.setNotificationUri(getContext().getContentResolver(), uri);
+
+    return cursor;
+    «ELSE»
+    return null;
+	«ENDIF»
+}
+«ENDDEFINE»
+
+«DEFINE queryCases FOR EClassifier-»
+case «name.toUpperCase()»_ID:
+    queryBuilder.appendWhere(«name.toFirstUpper()»Table.ID + "=" + uri.getPathSegments().get(1));
+case «name.toUpperCase()»_DIR:
+    queryBuilder.setTables(«name.toFirstUpper()»Table.TABLE_NAME);
+    break;
+«ENDDEFINE»
+
+«DEFINE delete FOR EPackage»
+/**
+ * Deletes given elements by their uri (items or directories) and returns number of deleted rows.
+ *
+ * @param uri from type Uri
+ * @param selection from type String
+ * @param selectionArgs from type String[]
+ *
+ * @return number of deleted rows from type int
+ */
+@Override
+public final int delete(final Uri uri, final String selection, final String[] selectionArgs) {
+	«IF !eClassifiers.isEmpty»
+	final SQLiteDatabase dbConnection = db.getWritableDatabase();
+    int deleteCount = 0;
+    
+    try {
+    	dbConnection.beginTransaction();
+    	
+        switch (URI_MATCHER.match(uri)) {        
+        «EXPAND deleteCases FOREACH eClassifiers»        
+		default:
+			throw new IllegalArgumentException("Unsupported URI:" + uri);
+        }
+    } finally {
+		dbConnection.endTransaction();
+    }
+    
+	if (deleteCount > 0) {
+    	getContext().getContentResolver().notifyChange(uri, null);
+	}
+
+    return deleteCount;
+    «ELSE»
+    return 0;
+	«ENDIF»        
+}
+«ENDDEFINE»
+
+«DEFINE deleteCases FOR EClassifier-»
+case «name.toUpperCase()»_DIR:
+	deleteCount = dbConnection.delete(«name.toFirstUpper()»Table.TABLE_NAME, selection, selectionArgs);
+	dbConnection.setTransactionSuccessful();
+	break;
+case «name.toUpperCase()»_ID:
+	deleteCount = dbConnection.delete(«name.toFirstUpper()»Table.TABLE_NAME, «name.toFirstUpper()»Table.WHERE_ID_EQUALS, new String[] { uri.getPathSegments().get(1) });
+	dbConnection.setTransactionSuccessful();
+	break;
+«ENDDEFINE»
+
+«DEFINE insert FOR EPackage»
+/**
+ * Insert given values to given uri. Uri has to be from type directory (see switch-cases).
+ * Returns uri of inserted element.
+ *
+ * @param uri from type Uri
+ * @param values from type ContentValues
+ *
+ * @return uri of inserted element from type Uri
+ */
+@Override
+public final Uri insert(final Uri uri, final ContentValues values) {
+	final SQLiteDatabase dbConnection = db.getWritableDatabase();
+	
+	try {
+		dbConnection.beginTransaction();
+		
+    	switch (URI_MATCHER.match(uri)) {
+    	«EXPAND insertCases FOREACH eClassifiers-»
+		default:
+			throw new IllegalArgumentException("Unsupported URI:" + uri);
+    	}
+	} catch (Exception e) {
+    	Log.e(TAG, "Insert Exception", e);
+	} finally {
+		dbConnection.endTransaction();
+	}
+	
+	return null;
+}
+«ENDDEFINE»
+
+«DEFINE insertCases FOR EClassifier-»
+case «name.toUpperCase()»_DIR:
+case «name.toUpperCase()»_ID:
+	final long «name.toLowerCase()»id = dbConnection.insertOrThrow(«name.toFirstUpper()»Table.TABLE_NAME, null, values);
+    final Uri new«name.toFirstUpper()» = ContentUris.withAppendedId(«name.toUpperCase()»_CONTENT_URI, «name.toLowerCase()»id);
+    getContext().getContentResolver().notifyChange(new«name.toFirstUpper()», null);
+    dbConnection.setTransactionSuccessful();
+    return new«name.toFirstUpper()»;
+«ENDDEFINE»
+
+«DEFINE update FOR EPackage»
+/**
+ * Updates given values of given uri, returning number of affected rows.
+ *
+ * @param uri from type Uri
+ * @param values from type ContentValues
+ * @param selection from type String
+ * @param selectionArgs from type String[]
+ *
+ * @return number of affected rows from type int
+ */
+@Override
+public final int update(final Uri uri, final ContentValues values, final String selection, final String[] selectionArgs) {
+	«IF !eClassifiers.isEmpty»
+	final SQLiteDatabase dbConnection = db.getWritableDatabase();
+    int updateCount = 0;
+    
+    try{
+    	dbConnection.beginTransaction();
+    	
+    	switch (URI_MATCHER.match(uri)) {
+    
+    	«EXPAND updateCases FOREACH eClassifiers-»
+		default:
+			throw new IllegalArgumentException("Unsupported URI:" + uri);
+    	}
+    } finally{
+		dbConnection.endTransaction();
+    }
+    
+    if(updateCount > 0){
+		getContext().getContentResolver().notifyChange(uri, null);
+	}
+
+    return updateCount;
+    «ELSE»
+    return 0;
+	«ENDIF»
+}
+«ENDDEFINE»
+
+«DEFINE updateCases FOR EClassifier»
+case «name.toUpperCase()»_DIR:
+	updateCount = dbConnection.update(«name.toFirstUpper()»Table.TABLE_NAME, values, selection, selectionArgs);
+	dbConnection.setTransactionSuccessful();
+	break;
+case «name.toUpperCase()»_ID:
+	final Long «name.toLowerCase()»Id = ContentUris.parseId(uri);
+	updateCount = dbConnection.update(«name.toFirstUpper()»Table.TABLE_NAME, values, «name.toFirstUpper()»Table.ID + "=" + «name.toLowerCase()»Id + (TextUtils.isEmpty(selection) ? "" : " AND (" + selection + ")"), selectionArgs);
+	dbConnection.setTransactionSuccessful();
+	break;
+«ENDDEFINE»
+
+«DEFINE onCreate FOR EPackage»
+/**
+ * Instantiate the database, when the content provider is created
+ */
+@Override
+public final boolean onCreate() {
+	db = new Database(getContext());
+	return true;
+}	
+«ENDDEFINE»
+
+«DEFINE getType FOR EPackage»
+/**
+ * Providing information whether uri returns an item or an directory.
+ * 
+ * @param uri from type Uri
+ * 
+ * @return content_type from type Content.CONTENT_TYPE or Content.CONTENT_ITEM_TYPE
+ *
+ */
+@Override
+public final String getType(final Uri uri) {
+	switch (URI_MATCHER.match(uri)) {
+	«EXPAND getTypeCases FOREACH eClassifiers-»
+	default:
+    	throw new IllegalArgumentException("Unsupported URI: " + uri);
+	}	
+}	
+«ENDDEFINE»
+
+«DEFINE getTypeCases FOR EClassifier-»
+case «name.toUpperCase()»_DIR:
+	return «name.toFirstUpper()»Content.CONTENT_TYPE;
+case «name.toUpperCase()»_ID:
+	return «name.toFirstUpper()»Content.CONTENT_ITEM_TYPE;
+«ENDDEFINE»
