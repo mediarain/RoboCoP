@@ -1,0 +1,330 @@
+package ${packageName}.provider;
+
+import ${packageName}.database.${providerName}Database;
+
+import ${packageName}.database.table.*;
+
+import android.provider.BaseColumns;
+import android.text.TextUtils;
+import android.content.ContentUris;
+import android.database.sqlite.SQLiteQueryBuilder;
+
+import android.content.ContentProvider;
+import android.content.ContentValues;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ${providerName}Provider extends ContentProvider {
+
+    public static final String AUTHORITY = "${packageName}.provider";
+
+    public static final Uri AUTHORITY_URI = Uri.parse("content://" + AUTHORITY);
+
+#foreach( $table in $tables )
+    #set( $tableName = $table.getTableConstantName() )
+    public static final Uri ${tableName}_CONTENT_URI = Uri.withAppendedPath(${providerName}Provider.AUTHORITY_URI, ${table.getTableClassName()}Content.CONTENT_PATH);
+
+#end
+#foreach( $relationship in $relationships )
+    #set( $joinTableName = $relationship.getLeftTableConstantName() + "_JOIN_" + $relationship.getRightTableConstantName())
+    #set( $joinTableClassName = $relationship.getLeftTableClassName() + "Join" + $relationship.getRightTableClassName())
+    public static final Uri ${joinTableName}_CONTENT_URI = Uri.withAppendedPath(${providerName}Provider.AUTHORITY_URI, ${joinTableClassName}Content.CONTENT_PATH);
+#end
+
+    private static final UriMatcher URI_MATCHER;
+    private ${providerName}Database mDatabase;
+
+#set( $matcherIndex = 0 )
+#foreach( $table in $tables )
+#set( $tableName = $table.getTableConstantName() )
+    private static final int ${tableName}_DIR = ${matcherIndex};
+#set($matcherIndex = $matcherIndex+1)
+    private static final int ${tableName}_ID = ${matcherIndex};
+
+#set($matcherIndex = $matcherIndex+1)
+#end
+#foreach( $relationship in $relationships )
+    #set( $joinTableName = $relationship.getLeftTableConstantName() + "_JOIN_" + $relationship.getRightTableConstantName())
+    private static final int ${joinTableName}_DIR = ${matcherIndex};
+
+    #set($matcherIndex = $matcherIndex+1)
+#end
+
+    static {
+        URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
+#foreach( $table in $tables )
+#set( $tableNameCaps = $table.getTableConstantName() )
+        URI_MATCHER.addURI(AUTHORITY, ${table.getTableClassName()}Content.CONTENT_PATH, ${tableNameCaps}_DIR);
+        URI_MATCHER.addURI(AUTHORITY, ${table.getTableClassName()}Content.CONTENT_PATH + "/#",    ${tableNameCaps}_ID);
+
+#end
+#foreach ( $relationship in $relationships )
+#set( $joinTableClassName = $relationship.getLeftTableClassName() + "Join" + $relationship.getRightTableClassName())
+#set( $joinTableName = $relationship.getLeftTableConstantName() + "_JOIN_" + $relationship.getRightTableConstantName())
+        URI_MATCHER.addURI(AUTHORITY, ${joinTableClassName}Content.CONTENT_PATH, ${joinTableName}_DIR);
+#end
+     }
+
+#foreach( $table in $tables )
+#set( $tableNameLower = $table.getTableClassName().toLowerCase() )
+#set( $providerNameLower = $providerName.toLowerCase() )
+    public static final class ${table.getTableClassName()}Content implements BaseColumns {
+        public static final String CONTENT_PATH = "${tableNameLower}";
+        public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.${providerNameLower}_database.${tableNameLower}";
+        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.${providerNameLower}_database.${tableNameLower}";
+    }
+
+#end
+#foreach( $relationship in $relationships )
+#set( $joinTableClassName = $relationship.getLeftTableClassName() + "Join" + $relationship.getRightTableClassName())
+#set( $joinTableName = $relationship.getLeftTableConstantName() + "_JOIN_" + $relationship.getRightTableConstantName())
+#set( $joinTableNameLower = $joinTableName.toLowerCase() )
+    public static final class ${joinTableClassName}Content implements BaseColumns {
+        public static final String CONTENT_PATH = "${joinTableNameLower}";
+        public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.${providerNameLower}_database.${joinTableNameLower}";
+    }
+#end
+
+    @Override
+    public final boolean onCreate() {
+        mDatabase = new ${providerName}Database(getContext());
+        return true;
+    }
+
+    @Override
+    public final String getType(final Uri uri) {
+        switch (URI_MATCHER.match(uri)) {
+#foreach( $table in $tables )
+#set( $tableNameCaps = $table.getTableConstantName() )
+            case ${tableNameCaps}_DIR:
+                return ${table.getTableClassName()}Content.CONTENT_TYPE;
+            case ${tableNameCaps}_ID:
+                return ${table.getTableClassName()}Content.CONTENT_ITEM_TYPE;
+
+#end
+#foreach( $relationship in $relationships)
+#set( $joinTableName = $relationship.getLeftTableConstantName() + "_JOIN_" + $relationship.getRightTableConstantName())
+#set( $joinTableClassName = $relationship.getLeftTableClassName() + "Join" + $relationship.getRightTableClassName())
+            case ${joinTableName}_DIR:
+                return ${joinTableClassName}Content.CONTENT_TYPE;
+
+#end
+            default:
+                throw new IllegalArgumentException("Unsupported URI: " + uri);
+        }
+    }
+
+    @Override
+    public final Cursor query(final Uri uri, String[] projection, final String selection, final String[] selectionArgs, final String sortOrder) {
+        final SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
+        final SQLiteDatabase dbConnection = mDatabase.getReadableDatabase();
+
+        switch (URI_MATCHER.match(uri)) {
+#foreach( $table in $tables )
+#set( $tableNameCaps = $table.getTableConstantName() )
+            case ${tableNameCaps}_ID:
+                queryBuilder.appendWhere(${table.getTableClassName()}Table._ID + "=" + uri.getLastPathSegment());
+            case ${tableNameCaps}_DIR:
+                queryBuilder.setTables(${table.getTableClassName()}Table.TABLE_NAME);
+                break;
+
+#end
+#foreach( $relationship in $relationships )
+#set( $joinTableName = $relationship.getLeftTableConstantName() + "_JOIN_" + $relationship.getRightTableConstantName())
+            case ${joinTableName}_DIR:
+                queryBuilder.setTables(${relationship.getLeftTableClassName()}Table.TABLE_NAME + " JOIN " + ${relationship.getRightTableClassName()}Table.TABLE_NAME + " ON (" + ${relationship.getLeftTableClassName()}Table.TABLE_NAME + "." + ${relationship.getLeftTableClassName()}Table._ID + "=" + ${relationship.getRightTableClassName()}Table.TABLE_NAME + "." + ${relationship.getRightTableClassName()}Table.${relationship.getLeftTableForeignKey()} + ")");
+
+                projection = new String[] {
+                    //add left table columns
+                    ${relationship.getLeftTableClassName()}Table.TABLE_NAME + "._id AS " + ${relationship.getLeftTableClassName()}Table.TABLE_NAME + "__id",
+#foreach( $field in $relationship.getLeftTableModel().getFields())
+#if($field)
+#set( $fullFieldName = $relationship.getLeftTableClassName() + "Table." + $field.getConstantString() )
+#set( $fullTableName = $relationship.getLeftTableClassName() + "Table.TABLE_NAME" )
+                    ${fullTableName} + "." + ${fullFieldName} + " AS " + ${fullTableName} + "_" + ${fullFieldName},
+#end
+#end
+                    ${relationship.getRightTableClassName()}Table.TABLE_NAME + "._id AS " + ${relationship.getRightTableClassName()}Table.TABLE_NAME + "__id",
+#foreach( $field in $relationship.getRightTableModel().getFields())
+#if($field)
+#set( $fullFieldName = $relationship.getRightTableClassName() + "Table." + $field.getConstantString() )
+#set( $fullTableName = $relationship.getRightTableClassName() + "Table.TABLE_NAME" )
+                    ${fullTableName} + "." + ${fullFieldName} + " AS " + ${fullTableName} + "_" + ${fullFieldName},
+#end
+#end
+                };
+#end
+            default :
+                throw new IllegalArgumentException("Unsupported URI:" + uri);
+        }
+
+        Cursor cursor = queryBuilder.query(dbConnection, projection, selection, selectionArgs, null, null, sortOrder);
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+
+        return cursor;
+
+    }
+
+    @Override
+    public final Uri insert(final Uri uri, final ContentValues values) {
+        final SQLiteDatabase dbConnection = mDatabase.getWritableDatabase();
+
+        try {
+            dbConnection.beginTransaction();
+
+            switch (URI_MATCHER.match(uri)) {
+#foreach( $table in $tables )
+#set( $tableNameCaps = $table.getTableConstantName() )
+#set( $tableNameLower = $tableNameCaps.toLowerCase() )
+                case ${tableNameCaps}_DIR:
+                case ${tableNameCaps}_ID:
+                    final long ${tableNameLower}Id = dbConnection.insertOrThrow(${table.getTableClassName()}Table.TABLE_NAME, null, values);
+                    final Uri new${table.getTableClassName()}Uri = ContentUris.withAppendedId(${tableNameCaps}_CONTENT_URI, ${tableNameLower}Id);
+                    getContext().getContentResolver().notifyChange(new${table.getTableClassName()}Uri, null);
+#set( $includedRelations = $providerModel.getRelationshipsForTable($table) )
+#if( $includedRelations )
+#foreach( $includedRelation in $includedRelations )
+#set( $joinTableName = $includedRelation.getLeftTableConstantName() + "_JOIN_" + $includedRelation.getRightTableConstantName() + "_CONTENT_URI")
+                    getContext().getContentResolver().notifyChange(${joinTableName}, null);
+#end
+#end
+
+                    dbConnection.setTransactionSuccessful();
+                    return new${table.getTableClassName()}Uri;
+#end
+                default :
+                    throw new IllegalArgumentException("Unsupported URI:" + uri);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            dbConnection.endTransaction();
+        }
+
+        return null;
+    }
+
+    @Override
+    public final int update(final Uri uri, final ContentValues values, final String selection, final String[] selectionArgs) {
+        final SQLiteDatabase dbConnection = mDatabase.getWritableDatabase();
+        int updateCount = 0;
+        List<Uri> joinUris = new ArrayList<Uri>();
+
+        try {
+            dbConnection.beginTransaction();
+
+            switch (URI_MATCHER.match(uri)) {
+#foreach( $table in $tables )
+#set( $tableNameCaps = $table.getTableConstantName() )
+#set( $tableNameLower = $tableNameCaps.toLowerCase() )
+#set( $includedRelations = $providerModel.getRelationshipsForTable($table) )
+                case ${tableNameCaps}_DIR:
+                    updateCount = dbConnection.update(${table.getTableClassName()}Table.TABLE_NAME, values, selection, selectionArgs);
+
+#if( $includedRelations )
+#foreach( $includedRelation in $includedRelations )
+#set( $joinTableName = $includedRelation.getLeftTableConstantName() + "_JOIN_" + $includedRelation.getRightTableConstantName() + "_CONTENT_URI")
+                    joinUris.add(${joinTableName});
+
+#end
+#end
+                    dbConnection.setTransactionSuccessful();
+                    break;
+                case ${tableNameCaps}_ID:
+                   final long ${tableNameLower}Id = ContentUris.parseId(uri);
+                   updateCount = dbConnection.update(${table.getTableClassName()}Table.TABLE_NAME, values,
+                       ${table.getTableClassName()}Table._ID + "=" + ${tableNameLower}Id + (TextUtils.isEmpty(selection) ? "" : " AND (" + selection + ")"), selectionArgs);
+
+#if( $includedRelations )
+#foreach( $includedRelation in $includedRelations )
+#set( $joinTableName = $includedRelation.getLeftTableConstantName() + "_JOIN_" + $includedRelation.getRightTableConstantName() + "_CONTENT_URI")
+                   joinUris.add(${joinTableName});
+
+#end
+#end
+                   dbConnection.setTransactionSuccessful();
+                   break;
+
+#end
+                default :
+                    throw new IllegalArgumentException("Unsupported URI:" + uri);
+            }
+        } finally {
+            dbConnection.endTransaction();
+        }
+
+        if (updateCount > 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+
+            for (Uri joinUri : joinUris) {
+                getContext().getContentResolver().notifyChange(joinUri, null);
+            }
+        }
+
+        return updateCount;
+
+    }
+
+    @Override
+    public final int delete(final Uri uri, final String selection, final String[] selectionArgs) {
+        final SQLiteDatabase dbConnection = mDatabase.getWritableDatabase();
+        int deleteCount = 0;
+        List<Uri> joinUris = new ArrayList<Uri>();
+
+        try {
+            dbConnection.beginTransaction();
+
+            switch (URI_MATCHER.match(uri)) {
+#foreach( $table in $tables )
+#set( $tableNameCaps = $table.getTableConstantName() )
+#set( $tableNameLower = $tableNameCaps.toLowerCase() )
+#set( $includedRelations = $providerModel.getRelationshipsForTable($table) )
+                case ${tableNameCaps}_DIR:
+                    deleteCount = dbConnection.delete(${table.getTableClassName()}Table.TABLE_NAME, selection, selectionArgs);
+
+#if( $includedRelations )
+#foreach( $includedRelation in $includedRelations )
+#set( $joinTableName = $includedRelation.getLeftTableConstantName() + "_JOIN_" + $includedRelation.getRightTableConstantName() + "_CONTENT_URI")
+                    joinUris.add(${joinTableName});
+
+#end
+#end
+                    dbConnection.setTransactionSuccessful();
+                    break;
+                case ${tableNameCaps}_ID:
+                    deleteCount = dbConnection.delete(${table.getTableClassName()}Table.TABLE_NAME, ${table.getTableClassName()}Table.WHERE_ID_EQUALS, new String[] { uri.getLastPathSegment() });
+
+#if( $includedRelations )
+#foreach( $includedRelation in $includedRelations )
+#set( $joinTableName = $includedRelation.getLeftTableConstantName() + "_JOIN_" + $includedRelation.getRightTableConstantName() + "_CONTENT_URI")
+                    joinUris.add(${joinTableName});
+
+#end
+#end
+                    dbConnection.setTransactionSuccessful();
+                    break;
+
+#end
+                default :
+                    throw new IllegalArgumentException("Unsupported URI:" + uri);
+            }
+        } finally {
+            dbConnection.endTransaction();
+        }
+
+        if (deleteCount > 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+
+            for (Uri joinUri : joinUris) {
+                getContext().getContentResolver().notifyChange(joinUri, null);
+            }
+        }
+
+        return deleteCount;
+    }
+}

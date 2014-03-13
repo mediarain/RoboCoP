@@ -1,5 +1,0 @@
-Void putReference(String key, String value) : JAVA de.mdsdacp.logic.StoredReferences.putReference(java.lang.String,java.lang.String);
-List getReferences(String key) :  JAVA de.mdsdacp.logic.StoredReferences.getReferences(java.lang.String);
-Void clearRefernces() : JAVA de.mdsdacp.logic.StoredReferences.clearReferences();
-
-Integer countUp():  JAVA de.mdsdacp.logic.Counter.countUp();

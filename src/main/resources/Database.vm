@@ -1,0 +1,43 @@
+package ${packageName}.database;
+
+import ${packageName}.database.table.*;
+
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+#set( $providerNameLower = $providerName.toLowerCase() )
+public class ${providerName}Database extends SQLiteOpenHelper {
+    private static final String DATABASE_NAME = "${providerNameLower}_database.db";
+    private static final int DATABASE_VERSION = ${databaseVersion};
+
+    public ${providerName}Database(final Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+    @Override
+    public final void onCreate(final SQLiteDatabase db) {
+#foreach( $table in $tables )
+        db.execSQL(${table.getTableClassName()}Table.SQL_CREATE);
+
+#end
+    }
+
+    @Override
+    public final void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
+        upgrade(db, oldVersion, newVersion);
+    }
+
+    private final void dropTablesAndCreate(final SQLiteDatabase db) {
+#foreach( $table in $tables )
+        db.execSQL(${table.getTableClassName()}Table.SQL_DROP);
+
+#end
+
+        onCreate(db);
+    }
+
+    private void upgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
+        dropTablesAndCreate(db);
+    }
+}

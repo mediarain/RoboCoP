@@ -1,0 +1,445 @@
+{
+  "packageName": "com.ifit.android.sdk",
+  "providerName": "ifit_database",
+  "databaseVersion": 26,
+  "tables": [
+    {
+      "name": "FeaturedWorkout",
+      "members" : [
+        {
+          "type" : "String",
+          "name" : "feature_title"
+        },
+        {
+          "type" : "String",
+          "name" : "feature_tag_line"
+        },
+        {
+          "type" : "String",
+          "name" : "promo_image_path"
+        },
+        {
+          "type" : "String",
+          "name" : "workout_id"
+        },
+        {
+          "type" : "double",
+          "name" : "distance"
+        },
+        {
+          "type" : "int",
+          "name" : "calories"
+        },
+        {
+          "type" : "double",
+          "name" : "maxincline"
+        }
+      ]
+    },
+    {
+      "name": "Workout",
+      "members": [
+        {
+          "type": "String",
+          "name": "workout_title"
+        },
+        {
+          "type": "String",
+          "name": "date_created"
+        },
+        {
+          "type": "String",
+          "name": "description"
+        },
+        {
+          "type": "String",
+          "name": "workout_type"
+        },
+        {
+          "type": "float",
+          "name": "distance"
+        },
+        {
+          "type": "float",
+          "name": "max_incline"
+        },
+        {
+          "type": "int",
+          "name": "calories"
+        },
+        {
+          "type": "String",
+          "name": "workout_id"
+        },
+        {
+          "type": "String",
+          "name": "wpl_path"
+        },
+        {
+          "type": "String",
+          "name": "image_url"
+        },
+        {
+          "type": "String",
+          "name": "date_scheduled"
+        },
+        {
+          "type": "String",
+          "name": "workout_collection_id"
+        },
+        {
+          "type": "String",
+          "name": "workout_event_id"
+        },
+        {
+          "type": "String",
+          "name": "workout_user_id"
+        },
+        {
+          "type": "String",
+          "name": "route_id"
+        },
+        {
+          "type": "String",
+          "name": "date_workout_end"
+        },
+        {
+          "type": "int",
+          "name": "all_day"
+        },
+        {
+          "type": "double",
+          "name": "target_value"
+        },
+        {
+          "type": "String",
+          "name": "target_type"
+        },
+        {
+          "type": "String",
+          "name": "controls"
+        },
+        {
+          "type": "double",
+          "name": "elevation_gained"
+        },
+        {
+          "type": "double",
+          "name": "elevation_loss"
+        },
+        {
+         "type": "int",
+         "name": "duration"
+        }
+      ]
+    },
+    {
+      "name": "WorkoutCollection",
+      "members": [
+        {
+          "type": "String",
+          "name": "workout_collection_title"
+        },
+        {
+          "type": "String",
+          "name": "workout_collection_description"
+        },
+        {
+          "type": "String",
+          "name": "workout_collection_thumbnail_path"
+        },
+        {
+          "type": "boolean",
+          "name": "is_added"
+        },
+        {
+          "type": "String",
+          "name": "workout_collection_type"
+        },
+        {
+          "type": "String",
+          "name": "workout_collection_type_extra"
+        },
+        {
+          "type": "String",
+          "name": "external_id"
+        },
+        {
+          "type": "boolean",
+          "name": "is_adhoc"
+        },
+        {
+          "type": "boolean",
+          "name": "is_visible"
+        },
+        {
+          "type": "String",
+          "name": "collection_user_id"
+        }
+      ]
+    },
+    {
+      "name": "WorkoutHistory",
+      "members": [
+        {
+          "type": "String",
+          "name": "workout_session_id"
+        },
+        {
+          "type": "String",
+          "name": "user_id"
+        },
+        {
+          "type": "boolean",
+          "name": "finished"
+        },
+        {
+          "type": "String",
+          "name": "workout_id"
+        },
+        {
+          "type": "String",
+          "name": "route_id"
+        },
+        {
+          "type": "String",
+          "name": "start_time"
+        },
+        {
+          "type": "String",
+          "name": "end_time"
+        },
+        {
+          "type": "String",
+          "name": "notes"
+        },
+        {
+          "type": "boolean",
+          "name": "complete_challenge"
+        },
+        {
+          "type": "double",
+          "name": "calories"
+        },
+        {
+          "type": "double",
+          "name": "average_heart_rate"
+        },
+        {
+          "type": "double",
+          "name": "max_heart_rate"
+        },
+        {
+          "type": "double",
+          "name": "distance"
+        },
+        {
+          "type": "double",
+          "name": "duration"
+        },
+        {
+          "type": "String",
+          "name": "type"
+        },
+        {
+          "type": "String",
+          "name": "timestamp"
+        },
+        {
+          "type": "boolean",
+          "name": "manually_logged"
+        },
+        {
+          "type": "String",
+          "name": "title"
+        },
+        {
+          "type": "int",
+          "name": "page_num"
+        },
+        {
+          "type": "String",
+          "name": "workout_instance_id"
+        },
+        {
+          "type": "double",
+          "name": "elevation_gain"
+        },
+        {
+          "type": "double",
+          "name": "elevation_loss"
+        },
+        {
+          "type": "String",
+          "name": "description"
+        },
+        {
+          "type": "String",
+          "name": "stats"
+        }
+      ]
+    },
+    {
+      "name": "WorkoutRoute",
+      "members": [
+        {
+          "type": "String",
+          "name": "workout_id"
+        },
+        {
+          "type": "double",
+          "name": "average_grade"
+        },
+        {
+          "type": "double",
+          "name": "total_elevation_loss"
+        },
+        {
+          "type": "double",
+          "name": "total_elevation_gain"
+        },
+        {
+          "type": "double",
+          "name": "distance"
+        },
+        {
+          "type": "double",
+          "name": "end_lat"
+        },
+        {
+          "type": "double",
+          "name": "end_lon"
+        },
+        {
+          "type": "double",
+          "name": "start_lat"
+        },
+        {
+          "type": "double",
+          "name": "start_lon"
+        },
+        {
+          "type": "String",
+          "name": "route_id"
+        },
+        {
+          "type": "String",
+          "name": "date"
+        },
+        {
+          "type": "String",
+          "name": "path_data"
+        }
+      ]
+    },
+    {
+      "name": "WorkoutWorkoutCollection",
+      "members": [
+        {
+          "type": "long",
+          "name": "workout_id"
+        },
+        {
+          "type": "long",
+          "name": "workout_collection_id"
+        }
+      ]
+    },
+    {
+        "name": "UserWeight",
+        "members": [
+            {
+                "type": "String",
+                "name": "user_id"
+            },
+            {
+                "type": "double",
+                "name": "kilograms"
+            },
+            {
+                "type": "String",
+                "name": "notes"
+            },
+            {
+                "type": "String",
+                "name": "remote_id"
+            },
+            {
+                "type": "long",
+                "name": "date"
+            },
+            {
+                "type": "long",
+                "name": "timestamp"
+            }
+        ]
+    },
+    {
+        "name": "MealItem",
+        "members": [
+            {
+                "type": "String",
+                "name": "user_id"
+            },
+            {
+                "type": "long",
+                "name": "date"
+            },
+            {
+                "type": "long",
+                "name": "food_id"
+            },
+            {
+                "type": "String",
+                "name": "meal"
+            },
+            {
+                "type": "long",
+                "name": "serving_id"
+            },
+            {
+                "type": "String",
+                "name": "remote_id"
+            },
+            {
+                "type": "double",
+                "name": "servings"
+            },
+            {
+                "type": "long",
+                "name": "timestamp"
+            }
+        ]
+    },
+    {
+        "name": "FoodDetail",
+        "members": [
+            {
+                "type": "String",
+                "name": "food_id"
+            },
+            {
+                "type": "String",
+                "name": "food_name"
+            },
+            {
+                "type": "String",
+                "name": "food_type"
+            },
+            {
+                "type": "String",
+                "name": "food_url"
+            },
+            {
+                "type": "String",
+                "name": "servings"
+            },
+            {
+                "type": "String",
+                "name": "img"
+            }
+        ]
+    }
+  ],
+  "relationships": []
+}

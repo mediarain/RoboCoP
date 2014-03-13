@@ -1,4 +1,0 @@
-Copy this code snippet in your AndroidManifest.xml inside the <application> element to activate the content provider
-	
-<provider android:name="de.mdsdacp.contentprovider.Provider" android:authorities="de.mdsdacp.provider.mycptestapp" />
-	

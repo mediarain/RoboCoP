@@ -1,0 +1,84 @@
+{
+  "packageName": "com.rain.example.data",
+  "providerName": "rain_employee",
+  "databaseVersion": 1,
+  "tables": [
+    {
+      "name": "person",
+      "members" : [
+        {
+          "type" : "string",
+          "name" : "name"
+        },
+        {
+          "type" : "int",
+          "name" : "age"
+        },
+      ]
+    },
+    {
+      "name": "hobby",
+      "members": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        }
+        ]
+    },
+     {
+       "name": "phone_contact",
+       "members": [
+         {
+           "type": "string",
+           "name": "number"
+         },
+         {
+           "type": "string",
+           "name": "phone_type"
+         }
+         ]
+     },
+     {
+        "name": "work_place",
+        "members": [
+          {
+            "type": "string",
+            "name": "name"
+          },
+          {
+            "type": "string",
+            "name": "address"
+          }
+        ]
+     },
+     {
+        "name": "vehicle",
+        "members": [
+          {
+            "type": "string",
+            "name": "make"
+          },
+          {
+            "type": "string",
+            "name": "model"
+          },
+          {
+            "type": "string",
+            "name": "color"
+          }
+        ]
+     }
+  ],
+  "relationships" : [
+      {
+          "name" : "person_vehicle",
+          "left_table" : "person",
+          "right_table" : "vehicle",
+          "type" : "to_many"
+      }
+  ]
+}

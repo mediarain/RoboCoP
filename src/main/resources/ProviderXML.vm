@@ -1,0 +1,1 @@
+<provider android:name="${packageName}.provider.${providerName}Provider" android:authorities="${packageName}.provider" android:exported="false" />

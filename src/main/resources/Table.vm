@@ -1,0 +1,56 @@
+package ${packageName}.database.table;
+
+public interface ${tableName}Table {
+#set( $tableNameLower = $tableName.toLowerCase() )
+    String TABLE_NAME = "${tableNameLower}";
+
+    String _ID = "_id";
+
+#set ($allColumns = "_ID")
+#set ($tableCreate = "_id INTEGER PRIMARY KEY AUTOINCREMENT")
+#foreach( $field in $fields )
+#if ($field)
+    String ${field.getConstantString()} = "${field.getConstantString().toLowerCase()}";
+#set ($allColumns = $allColumns + ", " + $field.getConstantString())
+#set ($tableCreate = $tableCreate + ", " + $field.getConstantString().toLowerCase() + " " + $field.getTypeString())
+#if (!$insertFields)
+#set ($insertFields = $field.getConstantString().toLowerCase())
+#set ($escapeFields = "?")
+#else
+#set ($insertFields = $insertFields + ", " + $field.getConstantString().toLowerCase())
+#set ($escapeFields = $escapeFields + ", ?")
+#end
+#end
+#end
+#if( $participatingRelationships )
+#foreach( $relationship in $participatingRelationships )
+#set( $foreignKey = $relationship.getForeignKeyNameForTable($table) )
+#if( $foreignKey )
+    String ${foreignKey} = "${foreignKey.toLowerCase()}";
+#set ($insertFields = $insertFields + ", " + ${foreignKey.toLowerCase()})
+#set ($escapeFields = $escapeFields + ", ?")
+#set ($allColumns = $allColumns + ", " + $foreignKey)
+#set ($tableCreate = $tableCreate + ", " + ${foreignKey.toLowerCase()} + " INTEGER")
+#end
+
+#end
+#end
+    String[] ALL_COLUMNS = new String[] {${allColumns}};
+
+    String SQL_CREATE = "CREATE TABLE ${tableNameLower} ( ${tableCreate} )";
+
+    String SQL_INSERT = "INSERT INTO ${tableNameLower} ( ${insertFields} ) VALUES ( ${escapeFields} )";
+
+    String SQL_DROP = "DROP TABLE IF EXISTS ${tableNameLower}";
+
+    String WHERE_ID_EQUALS = _ID + "=?";
+
+#if( $participatingRelationships )
+#foreach( $relationship in $participatingRelationships )
+#set( $foreignKey = $relationship.getForeignKeyNameForTable($table) )
+#if( $foreignKey )
+    String WHERE_${foreignKey}_EQUALS = ${foreignKey} + "=?";
+#end
+#end
+#end
+}
