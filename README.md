@@ -3,6 +3,8 @@ RoboCoP
 
 RoboCoP is a Java library that can generate a fully-functional ContentProvider from a simple JSON schema file.
 
+Get the latest version from our release page: https://github.com/mediarain/RoboCoP/releases
+
 Setup
 ========
 There are only a few steps involved in order to set up this tool to work inside of your build environment. The steps should not be difficult but should be done with care. At a high level you must:
@@ -18,7 +20,9 @@ Download And Install
 ### Download and Install
 1. Download the latest jar from the releases section of this repo page. You can use either the jar with dependencies (recommended) or provide them yourself.
 2. Create a new folder in your project directory and name it whatever you want (eg 'RoboCoP'). In a typical Android Studio project, this will be '<MainApplicationFolder>/<mainApplicationModule>/RoboCoP/'
-3. Place the RoboCoP jar from step 1 into the RoboCoP directory (it's important that you don't put this jar in your libs folder since this is a buildscript dependency not a runtime dependency and it will cause problems if this is confused)
+3. Place the RoboCoP jar from step 1 into the RoboCoP directory.
+    a. It's important that you don't put this jar in your libs folder since this is a buildscript dependency not a runtime dependency and it will cause problems if this is confused.
+    b. Don't add the path to this jar to your regular android dependencies in any other way as it will break your build. It's not a runtime dependency; it's just used by the build script.
 
 Create Your JSON Schema Definition
 ----------
@@ -55,8 +59,10 @@ Remember that for the code generation to generate nice looking code, you need to
 
 Gradle Configuration
 ---------------
+It's important to note that the only build.gradle file you should be editing is the one lower down in your application module, not the top level build.gradle file.
+
 The Gradle configuration involves just a few steps:
-1. Add a buildscript definition that depends on the RoboCoP library
+1. Add a buildscript definition that depends on the RoboCoP library. You need to add the buildscript to your application module build.gradle file not the root level build.gradle file which already should have a build.
 2. Add an import for the RoboCoP generator class
 3. Add a build task for the code generation process
 
@@ -64,6 +70,7 @@ A sample build.gradle file can be found in our Wiki: https://github.com/mediarai
 
 ### buildscript definition
 
+    // you may be temped to edit your top level build.gradle file because it sorta looks like this. Don't do it. Simply add this code block, to your application module build.gradle file and make sure the path to the jar file is correct.
     buildscript {
       repositories {
         mavenCentral()
@@ -72,7 +79,7 @@ A sample build.gradle file can be found in our Wiki: https://github.com/mediarai
         classpath 'com.android.tools.build:gradle:0.9.+'
 
         //this is the important part, the buildscript needs our library to generate the code.
-        classpath files('RoboCoP/RoboCoP-<version-number>-jar-with-dependencies.jar')
+        classpath files('RoboCoP/RoboCoP-0.5-jar-with-dependencies.jar')
       }
     }
 
