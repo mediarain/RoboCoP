@@ -5,19 +5,26 @@ RoboCoP is a Java library that can generate a fully-functional ContentProvider f
 
 Setup
 ========
-*For a working implementation of RoboCoP please see the "My Representative" Android project(//insert link here)
+There are only a few steps involved in order to set up this tool to work inside of your build environment. The steps should not be difficult but should be done with care. At a high level you must:
+1. Download and install the library jar file into your project directory
+2. Include your own custom JSON schema file in your project directory
+3. Configure your build.gradle file and include a special build task to generate the necessary files
+4. Use the Gradle task to generate your ContentProvider and related files
+5. Install your new ContentProvider in your AndroidManifest.xml file
+6. Enjoy
 
-Installation And Configuration
+Download And Install
 --------
 ### Download and Install
-1. Download the latest jar: //TODO link to the latest jar
+1. Download the latest jar from the releases section of this repo page. You can use either the jar with dependencies (recommended) or provide them yourself.
 2. Create a new folder in your project directory and name it whatever you want (eg 'RoboCoP'). In a typical Android Studio project, this will be '<MainApplicationFolder>/<mainApplicationModule>/RoboCoP/'
 3. Place the RoboCoP jar from step 1 into the RoboCoP directory (it's important that you don't put this jar in your libs folder since this is a buildscript dependency not a runtime dependency and it will cause problems if this is confused)
 
-### Create Your Schema Definition
-Create a JSON schema definition and place it in the same directory as the RoboCoP jar. You can name this file whatever you like, such as 'schema.json'.
+Create Your JSON Schema Definition
+----------
+Create a JSON schema definition and place it in the same directory as the RoboCoP jar. You can name this file whatever you like, such as 'schema.json'. A sample schema file can be found in our Wiki: https://github.com/mediarain/RoboCoP/wiki/Example-JSON-schema-definition
 
-#### Schema File Structure
+### Schema File Structure
 
     {
       "packageName" : "<the package name you want for your ContentProvider and associated classes/>",
@@ -26,17 +33,17 @@ Create a JSON schema definition and place it in the same directory as the RoboCo
       "tables" : [], //see below for table definition rules
       "relationships" : [] //see below for table definition rules
     }
-##### Table Definition Structure
+#### Table Definition Structure
     {
       "name" : "<name of the table/>",
       "members" : [] //see below for member field definition
     }
-###### Table Field Definition Structure
+##### Table Field Definition Structure
     {
       "type" : "<the ~java data type for this field. Your options are: string, double, int, boolean, long (lower case). These will map to SQLite types/>",
       "name" : "<the name of the field (lower case, underscore separated)/>"
     }
-##### Relationship Definition Structure
+#### Relationship Definition Structure
     {
       "name" : "<the name of this relationship (lower case, underscore separated)/>",
       "left_table" : "<the left side of the join (in a one-to-many this is the 'one' side)/>",
@@ -53,6 +60,8 @@ The Gradle configuration involves just a few steps:
 2. Add an import for the RoboCoP generator class
 3. Add a build task for the code generation process
 
+A sample build.gradle file can be found in our Wiki: https://github.com/mediarain/RoboCoP/wiki/Example-build.gradle-file
+
 ### buildscript definition
 
     buildscript {
@@ -61,6 +70,8 @@ The Gradle configuration involves just a few steps:
       }
       dependencies {
         classpath 'com.android.tools.build:gradle:0.9.+'
+
+        //this is the important part, the buildscript needs our library to generate the code.
         classpath files('RoboCoP/RoboCoP-<version-number>-jar-with-dependencies.jar')
       }
     }
@@ -79,8 +90,9 @@ Place the build task at the root level in your build.gradle file (not inside som
         description = 'Generating a beautiful ContentProvider and required classes'
         doLast {
             System.out.println("Generating ContentProvider...")
-            String schemaFilename = 'schema/agenda_schema.json';
+            String schemaFilename = 'RoboCoP/agenda_schema.json';//replace with the path to your schema
             String baseOutputDir = 'src/main/java/';
+            //if gradle throws an error on the following line, you probably either don't have your import statement set or you have the wrong path in your buildscript definition
             ContentProviderGenerator.generateContentProvider(schemaFilename, baseOutputDir);
         }
     }
@@ -94,7 +106,7 @@ The generator tool can write code to any directory for which it has permission. 
         description = 'Generating a beautiful ContentProvider and required classes'
         doLast {
             System.out.println("Generating ContentProvider...")
-            String schemaFilename = 'schema/agenda_schema.json';
+            String schemaFilename = 'RoboCoP/agenda_schema.json';
             String baseOutputDir = 'src-gen/';
             ContentProviderGenerator.generateContentProvider(schemaFilename, baseOutputDir);
         }
@@ -110,61 +122,6 @@ However, you are also responsible to make sure that 'src-gen' is included as a s
     
 We personally prefer this latter method as it keeps our main source directory uncluttered and focused on our own application code. It works either way though.
     
-### Sample build.gradle file
-The following is an example build.gradle file for a very basic Gradle configuration. 
-
-    apply plugin: 'android'
-    import com.rain.utils.android.robocop.generator.*;
-
-    android {
-        compileSdkVersion 19
-        buildToolsVersion "19.0.3"
-
-        defaultConfig {
-            minSdkVersion 14
-            targetSdkVersion 19
-            versionCode 1
-            versionName "1.0"
-        }
-
-        compileOptions {
-            sourceCompatibility JavaVersion.VERSION_1_7
-            targetCompatibility JavaVersion.VERSION_1_7
-        }
-        buildTypes {
-            release {
-                runProguard false
-                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            }
-        }
-    }
-
-    task contentProviderGen {
-        description = 'Generating a beautiful ContentProvider and required classes'
-        doLast {
-            System.out.println("Generating ContentProvider...")
-            String schemaFilename = 'schema/agenda_schema.json';
-            String baseOutputDir = 'src/main/java/';
-            ContentProviderGenerator.generateContentProvider(schemaFilename, baseOutputDir);
-        }
-    }
-
-    buildscript {
-        repositories {
-            mavenCentral()
-        }
-        dependencies {
-            classpath 'com.android.tools.build:gradle:0.9.+'
-            classpath files('RoboCoP/RoboCoP-0.5-jar-with-dependencies.jar')
-        }
-    }
-
-    dependencies {
-        compile 'com.android.support:support-v4:19.0.+'
-        compile 'com.squareup:otto:1.3.2'
-        compile 'com.jakewharton:butterknife:4.0.1'
-    }
-    
 Running The Generator
 -----------
 Once all the above setup are complete the last step to getting things up and running is to simply run the custom Gradle build task we created. The easiest way to do this is from Android Studio by right clicking the 'contentProviderGen' task text and selecting the "Run 'gradle:contentProvid...'". This will add a new build configuration in the top menu build configuration drop down. It will also provide you with the option of saving this configuration permanently so that it can be re-run whenever you like. This is a convenient option to select as you will more than likely want to make changes throughout the course of your development process. 
@@ -172,7 +129,11 @@ Once all the above setup are complete the last step to getting things up and run
 ### Caution
 Whenever you run this task, all of your generated code will be replaced with the newly generated code. Also, any other classes that are in the same folders as your generated code will be removed. You should never place your hand written code in the same directories as our generated code.
 
-Example Usage of a Generated ContentProvider
+Installing The Provider - Important!!!
+---------
+In order to use a ContentProvider in your Android app you must install it into your application's AndroidManifest file. The generator creates a special file in the root of your generated code called 'content-provider.xml' to assist with this step. Copy the contents of this file into your AndroidManifest file inside the <Application/> node. The generated code has the provider's exported property set to false. If this is true, then other applications may be able to access your data. Only set this to true if you know what you are doing.
+
+Your Done, Enjoy! - Example Usage of a Generated ContentProvider
 ----------
 To learn more about the ContentProvider class and its usages, please read the official docs: http://developer.android.com/reference/android/content/ContentProvider.html and http://developer.android.com/guide/topics/providers/content-providers.html. The following are some examples that encompass most of our typical usages.
 
@@ -292,6 +253,35 @@ Sometimes we get tired of some records and we have to let them go. Here's how to
     getContentResolver().delete(AgendaProvider.AGENDA_CONTENT_URI, AgendaTable.WHERE_ID_EQUALS, agenda.getRowId().toString());
 
 ### Performing Batch Operations
+Sometimes you have to do a lot of operations and it is much more efficient to do them all as a batch rather than one at a time. Here's a contrived example:
+
+    public void updateLotsOfAgendasAtOnce(List<Agenda> agendas) {
+        ArrayList<ContentProviderOperation> operations = new ArrayList<>();
+        for (int i = 0; i < agendas.size(); i++) {
+            ContentProviderOperation operation = ContentProviderOperation.newUpdate(AgendaProvider.AGENDA_CONTENT_URI)
+                    .withSelection(AgendaTable.WHERE_ID_EQUALS, new String[]{agendas.get(i).getRowId().toString()}).build();
+            operations.add(operation);
+        }
+        //just for fun, let's insert a few new ones while we're at it
+        for (int i = 0; i < 10; i++) {
+            Agenda agenda = new Agenda();
+            agenda.setName("New Agenda " + i);
+            ContentProviderOperation operation = ContentProviderOperation.newInsert(AgendaProvider.AGENDA_CONTENT_URI).withValues(agenda.getContentValues()).build();
+            operations.add(operation);
+
+        }
+        try {
+            getContentResolver().applyBatch(AgendaProvider.AUTHORITY, operations);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (OperationApplicationException e) {
+            e.printStackTrace();
+        }
+    }
+    
+There's a couple really good blog posts about this pattern. Please chech them out:
+1. The basics: https://www.grokkingandroid.com/better-performance-with-contentprovideroperation/
+2. withBackReference explained (really useful): https://www.grokkingandroid.com/androids-contentprovideroperation-withbackreference-explained/
 
 
 FAQ's
