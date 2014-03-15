@@ -303,5 +303,22 @@ Yes, the architecture and design decisions behind the ContentProvider is informe
 ### What are the current limitations of your tool?
 Currently we only generate code that supports querying one-to-many joined table relationships. Our generated code does not allow you to insert/update joined records as a single insert/update. For example if you queried for the join between person and phone numbers you cannot send a request to insert/update to this joined relationship. You must send your insert/update requests directly to the tables they belong to. The generated code also does not currently support many-to-many join operations. These features are on the roadmap as we feel they are important for a complete solution. However, we've built this tool according to what has been needful on our applications and the nature of mobile applications predisposes our UI's to generally only consume data coming from single tables: lists of friends, lists of documents, list of tweets. Very few data presentations problems are solved more optimally than two queries: query for and show a list of people and then query for that person's contact details when the user taps on their record.
 
+License
+-------
+
+    Copyright 2014 MediaRain, LLC.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
 
 
