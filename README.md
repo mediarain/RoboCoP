@@ -306,7 +306,7 @@ Currently we only generate code that supports querying one-to-many joined table 
 License
 -------
 
-    Copyright 2014 MediaRain, LLC.
+    Copyright 2014 Crossborders, LLC. Rain (DBA)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
