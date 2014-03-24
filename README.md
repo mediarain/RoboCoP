@@ -200,10 +200,13 @@ public class AgendaListFragment extends ListFragment implements LoaderManager.Lo
     
 The LoaderCallbacks interface provides hooks for creating your Loader and responding to load events. You'll now have to create your Loader which will be a CursorLoader and handling the events.
 ##### Create a CursorLoader
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(getActivity(), AgendaProvider.AGENDA_CONTENT_URI,new String[]{AgendaTable._ID, AgendaTable.NAME},null,null,AgendaTable._ID + " DESC");
-    }
+
+```java
+@Override
+public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+    return new CursorLoader(getActivity(), AgendaProvider.AGENDA_CONTENT_URI,new String[]{AgendaTable._ID, AgendaTable.NAME},null,null,AgendaTable._ID + " DESC");
+}
+```
     
 The generated ContentProvider has content URI's for all your tables and code completion should help you find the one you want. After that you can specify which fields you want to be returned and any query and query params or ordering need to go into the query.
 
