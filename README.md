@@ -30,30 +30,44 @@ Create a JSON schema definition and place it in the same directory as the RoboCo
 
 ### Schema File Structure
 
-    {
-      "packageName" : "<the package name you want for your ContentProvider and associated classes/>",
-      "providerName" : "<the base name for your provider. eg. 'Example' will yield 'ExampleProvider.java'/>",
-      "databaseVersion" : <the numeric value for the current version of your database. if you increment this, the database will upgrade/>,
-      "tables" : [], //see below for table definition rules
-      "relationships" : [] //see below for table definition rules
-    }
+```json
+{
+  "packageName" : "<the package name you want for your ContentProvider and associated classes/>",
+  "providerName" : "<the base name for your provider. eg. 'Example' will yield 'ExampleProvider.java'/>",
+  "databaseVersion" : <the numeric value for the current version of your database. if you increment this, the database will upgrade/>,
+  "tables" : [], //see below for table definition rules
+  "relationships" : [] //see below for table definition rules
+}
+```
+
 #### Table Definition Structure
-    {
-      "name" : "<name of the table/>",
-      "members" : [] //see below for member field definition
-    }
+
+```json
+{
+  "name" : "<name of the table/>",
+  "members" : [] //see below for member field definition
+}
+```
+
 ##### Table Field Definition Structure
-    {
-      "type" : "<the ~java data type for this field. Your options are: string, double, int, boolean, long (lower case). These will map to SQLite types/>",
-      "name" : "<the name of the field (lower case, underscore separated)/>"
-    }
+
+```json
+{
+  "type" : "<the ~java data type for this field. Your options are: string, double, int, boolean, long (lower case). These will map to SQLite types/>",
+  "name" : "<the name of the field (lower case, underscore separated)/>"
+}
+```
+
 #### Relationship Definition Structure
-    {
-      "name" : "<the name of this relationship (lower case, underscore separated)/>",
-      "left_table" : "<the left side of the join (in a one-to-many this is the 'one' side)/>",
-      "right_table" : "<the right side of the join (the 'many' side)/>",
-      "type" : "<the type of relationship. Your current option is 'to_many'"/>
-    }
+
+```json
+{
+  "name" : "<the name of this relationship (lower case, underscore separated)/>",
+  "left_table" : "<the left side of the join (in a one-to-many this is the 'one' side)/>",
+  "right_table" : "<the right side of the join (the 'many' side)/>",
+  "type" : "<the type of relationship. Your current option is 'to_many'"/>
+}
+```
 
 Remember that for the code generation to generate nice looking code, you need to write all of your schema values in lower case and underscore-separated.
 
@@ -70,62 +84,72 @@ A sample build.gradle file can be found in our Wiki: https://github.com/mediarai
 
 ### buildscript definition
 
-    // you may be temped to edit your top level build.gradle file because it sorta looks like this. Don't do it. Simply add this code block, to your application module build.gradle file and make sure the path to the jar file is correct.
-    buildscript {
-      repositories {
-        mavenCentral()
-      }
-      dependencies {
-        classpath 'com.android.tools.build:gradle:0.9.+'
+```groovy
+// you may be temped to edit your top level build.gradle file because it sorta looks like this. Don't do it. Simply add this code block, to your application module build.gradle file and make sure the path to the jar file is correct.
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'com.android.tools.build:gradle:0.9.+'
 
-        //this is the important part, the buildscript needs our library to generate the code.
-        classpath files('RoboCoP/RoboCoP-0.5-jar-with-dependencies.jar')
-      }
-    }
+    //this is the important part, the buildscript needs our library to generate the code.
+    classpath files('RoboCoP/RoboCoP-0.5-jar-with-dependencies.jar')
+  }
+}
+```
 
 
 ### RoboCoP generator import
 Place the import statement near the top of the file such as right underneath the android plugin
 
-    apply plugin: 'android'
-    import com.rain.utils.android.robocop.generator.*;
+```groovy
+apply plugin: 'android'
+import com.rain.utils.android.robocop.generator.*;
+```
     
 ### Build Task
 Place the build task at the root level in your build.gradle file (not inside something like the android{} definition for example)
 
-    task contentProviderGen {
-        description = 'Generating a beautiful ContentProvider and required classes'
-        doLast {
-            System.out.println("Generating ContentProvider...")
-            String schemaFilename = 'RoboCoP/agenda_schema.json';//replace with the path to your schema
-            String baseOutputDir = 'src/main/java/';
-            //if gradle throws an error on the following line, you probably either don't have your import statement set or you have the wrong path in your buildscript definition
-            ContentProviderGenerator.generateContentProvider(schemaFilename, baseOutputDir);
-        }
+```groovy
+task contentProviderGen {
+    description = 'Generating a beautiful ContentProvider and required classes'
+    doLast {
+        System.out.println("Generating ContentProvider...")
+        String schemaFilename = 'RoboCoP/agenda_schema.json';//replace with the path to your schema
+        String baseOutputDir = 'src/main/java/';
+        //if gradle throws an error on the following line, you probably either don't have your import statement set or you have the wrong path in your buildscript definition
+        ContentProviderGenerator.generateContentProvider(schemaFilename, baseOutputDir);
     }
+}
+```
     
 #### Explanation of Build Task
 The above task definition should be pretty easy to follow. This simply allows gradle to execute our code generation task whenever you want. inside the doLast{} block is where the main customization takes place. the schemaFilename variable should point to the location of your JSON schema file (explained previously). the baseOutputDir specifies at what root directory your generated code should be placed. What your resulting package structure (and thus file structure) will depend on what you put in your schema definition for the 'packageName' variable. So if you put 'com.mycompany.awesomeandroidapp' as your packageName, then the resulting files will be under 'src/main/java/com/mycompany/awesomeandroidapp'. 
 #### Alternative Output Directories
 The generator tool can write code to any directory for which it has permission. We will often place generated code in its own source folder outside our main src directory. Some prefer to keep all their sources, generated or otherwise, in the same location. So as an example, if you want to place your ContentProvider in another directory like 'src-gen' then your build task would look like this:
 
-    task contentProviderGen {
-        description = 'Generating a beautiful ContentProvider and required classes'
-        doLast {
-            System.out.println("Generating ContentProvider...")
-            String schemaFilename = 'RoboCoP/agenda_schema.json';
-            String baseOutputDir = 'src-gen/';
-            ContentProviderGenerator.generateContentProvider(schemaFilename, baseOutputDir);
-        }
+```groovy
+task contentProviderGen {
+    description = 'Generating a beautiful ContentProvider and required classes'
+    doLast {
+        System.out.println("Generating ContentProvider...")
+        String schemaFilename = 'RoboCoP/agenda_schema.json';
+        String baseOutputDir = 'src-gen/';
+        ContentProviderGenerator.generateContentProvider(schemaFilename, baseOutputDir);
     }
-    
+}
+```
+ 
 However, you are also responsible to make sure that 'src-gen' is included as a source folder in your build.gradle file. This can be done as follows:
 
-    sourceSets {
-        main {
-            java.srcDir 'src-gen'
-        }
+```groovy
+sourceSets {
+    main {
+        java.srcDir 'src-gen'
     }
+}
+```
     
 We personally prefer this latter method as it keeps our main source directory uncluttered and focused on our own application code. It works either way though.
     
@@ -148,40 +172,92 @@ To learn more about the ContentProvider class and its usages, please read the of
 Using Loaders is a great way to simplify fetching data for which to populate your UI and take away many of the concerns that come with updating data when necessary and managing the lifecycle of your app.
 #### Implement LoaderCallbacks<Cursor> in your Activity or Fragment
 
-    public class AgendaListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
+```java
+public class AgendaListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-        }
-
-        @Override
-        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-
-        }
-
-        @Override
-        public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-        }
-
-        @Override
-        public void onLoaderReset(Loader<Cursor> loader) {
-
-        }
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
 
     }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
+}
+```
     
 The LoaderCallbacks interface provides hooks for creating your Loader and responding to load events. You'll now have to create your Loader which will be a CursorLoader and handling the events.
 ##### Create a CursorLoader
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(getActivity(), AgendaProvider.AGENDA_CONTENT_URI,new String[]{AgendaTable._ID, AgendaTable.NAME},null,null,AgendaTable._ID + " DESC");
-    }
+
+```java
+@Override
+public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+    return new CursorLoader(getActivity(), AgendaProvider.AGENDA_CONTENT_URI,new String[]{AgendaTable._ID, AgendaTable.NAME},null,null,AgendaTable._ID + " DESC");
+}
+```
     
 The generated ContentProvider has content URI's for all your tables and code completion should help you find the one you want. After that you can specify which fields you want to be returned and any query and query params or ordering need to go into the query.
 
 ##### Handle the load event callbacks
+
+```java
+@Override
+public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+    mAdapter.swapCursor(data);
+}
+
+@Override
+public void onLoaderReset(Loader<Cursor> loader) {
+    mAdapter.swapCursor(null);
+}
+```
+    
+This is about the extent of it. when onLoadFinished will get called whenever a query to your table takes place which could be because you started/restarted the loader explicitly or because your backing data store changed which happens automatically with our generated code. onLoaderReset gets called during (suprise!) resets and so the current data is unavailable and so we pass in null to the cursor for the meantime.
+
+##### Starting the loader
+
+```java
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
+    mAdapter = new AgendaAdapter(getActivity(), null, 0);
+    setListAdapter(mAdapter);
+    getLoaderManager().initLoader(0, null, this);
+}
+```
+    
+Once it's started, the CursorLoader will query your ContentProvider via the ContentResolver and return your data when it's ready (usually very quickly). Here is what a working ListFragment might look like.
+
+```java
+public class AgendaListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mAdapter = new AgendaAdapter(getActivity(), null, 0);
+        setListAdapter(mAdapter);
+        getLoaderManager().initLoader(0, null, this);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(getActivity(), AgendaProvider.AGENDA_CONTENT_URI,new String[]{AgendaTable._ID, AgendaTable.NAME},null,null,AgendaTable._ID + " DESC");
+    }
+
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mAdapter.swapCursor(data);
@@ -191,100 +267,68 @@ The generated ContentProvider has content URI's for all your tables and code com
     public void onLoaderReset(Loader<Cursor> loader) {
         mAdapter.swapCursor(null);
     }
-    
-This is about the extent of it. when onLoadFinished will get called whenever a query to your table takes place which could be because you started/restarted the loader explicitly or because your backing data store changed which happens automatically with our generated code. onLoaderReset gets called during (suprise!) resets and so the current data is unavailable and so we pass in null to the cursor for the meantime.
 
-##### Starting the loader
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        mAdapter = new AgendaAdapter(getActivity(), null, 0);
-        setListAdapter(mAdapter);
-        getLoaderManager().initLoader(0, null, this);
-    }
-    
-Once it's started, the CursorLoader will query your ContentProvider via the ContentResolver and return your data when it's ready (usually very quickly). Here is what a working ListFragment might look like.
-
-    public class AgendaListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-
-            mAdapter = new AgendaAdapter(getActivity(), null, 0);
-            setListAdapter(mAdapter);
-            getLoaderManager().initLoader(0, null, this);
-        }
-
-        @Override
-        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-            return new CursorLoader(getActivity(), AgendaProvider.AGENDA_CONTENT_URI,new String[]{AgendaTable._ID, AgendaTable.NAME},null,null,AgendaTable._ID + " DESC");
-        }
-
-        @Override
-        public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-            mAdapter.swapCursor(data);
-        }
-
-        @Override
-        public void onLoaderReset(Loader<Cursor> loader) {
-            mAdapter.swapCursor(null);
-        }
-
-    }
-
+}
+```
 
 ### Adding a new record to a table
 Building off the previous example, we'll demonstrate how to insert new records that will automatically get loaded into the ListFragment once inserted.
 
-    Agenda agenda = new Agenda();
-    agenda.setName("New Agenda");
-    getContentResolver().insert(AgendaProvider.AGENDA_CONTENT_URI, agenda.getContentValues());
+```java
+Agenda agenda = new Agenda();
+agenda.setName("New Agenda");
+getContentResolver().insert(AgendaProvider.AGENDA_CONTENT_URI, agenda.getContentValues());
+```
     
 The generated tool includes convenient model classes that map to your table records. They can be constructed/inflated from a cursor and can also export a ContentValues object which is necessary for ContentResolver operations. Because the ListFragment CursorLoader is observing our Agenda table content URI, it, the onLoadFinished will get triggered automatically once this insert operation finishes and our new record will show up in our ListView. Sweet!
 ### Updating an existing record
 Let's now suppose that when the user taps on an agenda item from the list they are presented with a form with which to modify the details of the agenda. The following is an example of how to update the agenda item so that its values are saved and automatically reflected by our CursorLoader previously explained.
 
-    private void updateAgenda() {
-        //mAgenda is an Agenda model object generated by this tool, it has all the getters and setters you need
-        mAgenda.setName(mAgendaTitle.getText().toString());
-        mAgenda.setPersonConducting(mPersonConducting.getText().toString());
-        //there are also convenient constants on the generated Table classes for common necessary strings. AgendaTable.WHERE_ID_EQUALS resolves to "_id = ?"
-        getContentResolver().update(AgendaProvider.AGENDA_CONTENT_URI,mAgenda.getContentValues(), AgendaTable.WHERE_ID_EQUALS,new String[]{agenda.getRowId().toString()});
-    }
+```java
+private void updateAgenda() {
+    //mAgenda is an Agenda model object generated by this tool, it has all the getters and setters you need
+    mAgenda.setName(mAgendaTitle.getText().toString());
+    mAgenda.setPersonConducting(mPersonConducting.getText().toString());
+    //there are also convenient constants on the generated Table classes for common necessary strings. AgendaTable.WHERE_ID_EQUALS resolves to "_id = ?"
+    getContentResolver().update(AgendaProvider.AGENDA_CONTENT_URI,mAgenda.getContentValues(), AgendaTable.WHERE_ID_EQUALS,new String[]{agenda.getRowId().toString()});
+}
+```
 
 ### Deleting a Record
 Sometimes we get tired of some records and we have to let them go. Here's how to do it.
 
-    getContentResolver().delete(AgendaProvider.AGENDA_CONTENT_URI, AgendaTable.WHERE_ID_EQUALS, agenda.getRowId().toString());
+```java
+getContentResolver().delete(AgendaProvider.AGENDA_CONTENT_URI, AgendaTable.WHERE_ID_EQUALS, agenda.getRowId().toString());
+```
 
 ### Performing Batch Operations
 Sometimes you have to do a lot of operations and it is much more efficient to do them all as a batch rather than one at a time. Here's a contrived example:
 
-    public void updateLotsOfAgendasAtOnce(List<Agenda> agendas) {
-        ArrayList<ContentProviderOperation> operations = new ArrayList<>();
-        for (int i = 0; i < agendas.size(); i++) {
-            ContentProviderOperation operation = ContentProviderOperation.newUpdate(AgendaProvider.AGENDA_CONTENT_URI)
-                    .withSelection(AgendaTable.WHERE_ID_EQUALS, new String[]{agendas.get(i).getRowId().toString()}).build();
-            operations.add(operation);
-        }
-        //just for fun, let's insert a few new ones while we're at it
-        for (int i = 0; i < 10; i++) {
-            Agenda agenda = new Agenda();
-            agenda.setName("New Agenda " + i);
-            ContentProviderOperation operation = ContentProviderOperation.newInsert(AgendaProvider.AGENDA_CONTENT_URI).withValues(agenda.getContentValues()).build();
-            operations.add(operation);
-
-        }
-        try {
-            getContentResolver().applyBatch(AgendaProvider.AUTHORITY, operations);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (OperationApplicationException e) {
-            e.printStackTrace();
-        }
+```java
+public void updateLotsOfAgendasAtOnce(List<Agenda> agendas) {
+    ArrayList<ContentProviderOperation> operations = new ArrayList<>();
+    for (int i = 0; i < agendas.size(); i++) {
+        ContentProviderOperation operation = ContentProviderOperation.newUpdate(AgendaProvider.AGENDA_CONTENT_URI)
+                .withSelection(AgendaTable.WHERE_ID_EQUALS, new String[]{agendas.get(i).getRowId().toString()}).build();
+        operations.add(operation);
     }
+    //just for fun, let's insert a few new ones while we're at it
+    for (int i = 0; i < 10; i++) {
+        Agenda agenda = new Agenda();
+        agenda.setName("New Agenda " + i);
+        ContentProviderOperation operation = ContentProviderOperation.newInsert(AgendaProvider.AGENDA_CONTENT_URI).withValues(agenda.getContentValues()).build();
+        operations.add(operation);
+
+    }
+    try {
+        getContentResolver().applyBatch(AgendaProvider.AUTHORITY, operations);
+    } catch (RemoteException e) {
+        e.printStackTrace();
+    } catch (OperationApplicationException e) {
+        e.printStackTrace();
+    }
+}
+```
     
 There's a couple really good blog posts about this pattern. Please chech them out:
 1. The basics: https://www.grokkingandroid.com/better-performance-with-contentprovideroperation/
