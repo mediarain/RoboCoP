@@ -6,7 +6,7 @@
 
     <groupId>com.rain.util.android</groupId>
     <artifactId>RoboCoP</artifactId>
-    <version>0.5</version>
+    <version>0.5.1</version>
     <packaging>jar</packaging>
 
     <dependencies>
