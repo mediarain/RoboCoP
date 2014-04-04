@@ -158,6 +158,7 @@ public class ${providerName}Provider extends ContentProvider {
 #end
 #end
                 };
+                break;
 #end
             default :
                 throw new IllegalArgumentException("Unsupported URI:" + uri);
