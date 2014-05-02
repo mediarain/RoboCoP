@@ -2,6 +2,7 @@ package ${packageName}.model;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import com.google.gson.annotations.SerializedName;
 
 import ${packageName}.database.table.${tableName}Table;
 
@@ -12,6 +13,8 @@ public class ${tableName} {
     private long mRowId;
 #foreach( $field in $fields )
 #if($field)
+
+    @SerializedName("$field.getFieldName()")
     private ${field.getJavaTypeString()} ${field.getPrivateVariableName()};
 #end
 #end
