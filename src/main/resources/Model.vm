@@ -58,7 +58,9 @@ public class ${tableName} {
 
     public ContentValues getContentValues() {
         if (mValues.size() == 0) {
-            mValues.put(${tableName}Table._ID, mRowId);
+            if(mRowId > 0) {
+                mValues.put(${tableName}Table._ID, mRowId);
+            }
 #foreach ($field in $fields)
 #if($field)
             mValues.put(${tableName}Table.${field.getConstantString()}, ${field.getPrivateVariableName()});
