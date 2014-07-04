@@ -78,7 +78,7 @@ public class ContentProviderTableModel {
         public String getTypeString() {
             if (mFieldType.equals(INT) || mFieldType.equals(BOOLEAN)) {
                 return "INTEGER";
-            } else if (mFieldType.equals(LONG) || mFieldName.equals(DOUBLE)) {
+            } else if (mFieldType.equals(LONG) || mFieldType.equals(DOUBLE)) {
                 return "NUMERIC";
             } else {
                 return "TEXT";
@@ -104,7 +104,7 @@ public class ContentProviderTableModel {
                 return "getInt";
             } else if (mFieldType.equals(LONG)) {
                 return "getLong";
-            } else if(mFieldName.equals(DOUBLE)) {
+            } else if(mFieldType.equals(DOUBLE)) {
                 return "getDouble";
             } else {
                 return "getString";
