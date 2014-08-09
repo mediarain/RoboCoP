@@ -27,8 +27,16 @@ public interface ${tableName}Table {
 #set( $foreignKey = $relationship.getForeignKeyNameForTable($table) )
 #if( $foreignKey )
     String ${foreignKey} = "${foreignKey.toLowerCase()}";
+#if ( $insertFields && $insertFields.length() > 0 )
 #set ($insertFields = $insertFields + ", " + ${foreignKey.toLowerCase()})
+#else
+#set ($insertFields = ${foreignKey.toLowerCase()})
+#end
+#if ( $escapeFields && $escapeFields.length() > 0 )
 #set ($escapeFields = $escapeFields + ", ?")
+#else
+#set ($escapeFields = "?")
+#end
 #set ($allColumns = $allColumns + ", " + $foreignKey)
 #set ($tableCreate = $tableCreate + ", " + ${foreignKey.toLowerCase()} + " INTEGER")
 #end

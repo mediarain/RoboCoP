@@ -30,6 +30,21 @@ public class ContentProviderRelationshipModel {
 
     private ContentProviderTableModel mRightTableModel;
 
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof ContentProviderRelationshipModel)) {
+            System.out.println("not a ContentProviderRelationshipModel");
+            return false;
+        }
+        ContentProviderRelationshipModel other = (ContentProviderRelationshipModel) obj;
+
+        if(other.getLeftTableName().equals(getLeftTableName()) &&
+                other.getRightTableName().equals(getRightTableName())) {
+            return true;
+        }
+        return false;
+    }
+
     public ContentProviderRelationshipModel(String referenceType, String customName, String leftTableName, String rightTableName) {
         mReferenceType = referenceType;
         mCustomName = customName;
