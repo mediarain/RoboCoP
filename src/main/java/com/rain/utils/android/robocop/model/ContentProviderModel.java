@@ -6,6 +6,12 @@ import java.io.Console;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Created with IntelliJ IDEA.
+ * User: dustin
+ * Date: 1/15/14
+ * Time: 9:46 AM
+ */
 public class ContentProviderModel {
 
     @SerializedName("packageName")
