@@ -38,13 +38,6 @@ public class ContentProviderRelationshipModel {
         }
         ContentProviderRelationshipModel other = (ContentProviderRelationshipModel) obj;
 
-
-        //System.out.println(other.getLeftTableName() + "==" + getLeftTableName() + " = " + other.getLeftTableName().equals(getLeftTableName()));
-        //System.out.println(other.getRightTableName() + "==" + getRightTableName() + " = " + other.getRightTableName().equals(getRightTableName()));
-        //System.out.println(other.getReferenceType() + "==" + getReferenceType() + " = " + other.getReferenceType().equals(getReferenceType()));
-
-
-
         if(other.getLeftTableName().equals(getLeftTableName()) &&
                 other.getRightTableName().equals(getRightTableName())) {
             return true;

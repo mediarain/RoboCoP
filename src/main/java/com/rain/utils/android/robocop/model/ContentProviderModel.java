@@ -2,7 +2,6 @@ package com.rain.utils.android.robocop.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.io.Console;
 import java.util.ArrayList;
 import java.util.List;
 
