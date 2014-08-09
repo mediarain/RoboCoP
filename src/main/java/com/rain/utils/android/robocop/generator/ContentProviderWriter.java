@@ -67,8 +67,11 @@ public class ContentProviderWriter {
 
             for (ContentProviderTableModel table : contentProviderModel.getTables()) {
                 VelocityContext tableContext = new VelocityContext(baseContext);
+                tableContext.put("providerName", contentProviderModel.getProviderName());
+                tableContext.put("tableConstantName", table.getTableConstantName());
                 tableContext.put("table", table);
                 tableContext.put("participatingRelationships", contentProviderModel.getRelationshipsForTable(table));
+                tableContext.put("participatingExternalRelationships", contentProviderModel.getExternalRelationshipsForTable(table));
                 tableContext.put("tableName", table.getTableClassName());
                 tableContext.put("fields", table.getFields());
                 writeFile(engine, tableContext, "Table.vm", tablePath, "/" + table.getTableClassName() + "Table.java");

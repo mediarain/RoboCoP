@@ -1,10 +1,20 @@
 package ${packageName}.model;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import com.google.gson.annotations.SerializedName;
 
 import ${packageName}.database.table.${tableName}Table;
+#if( $participatingExternalRelationships )
+#foreach( $relationship in $participatingExternalRelationships )
+#set( $foreignClassName = $relationship.getRightTableClassName() )
+#if( $foreignClassName )
+import ${packageName}.database.table.${foreignClassName}Table;
+#end
+#end
+#end
+import ${packageName}.provider.${providerName}Provider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +44,10 @@ public class ${tableName} {
 
     public ${tableName}(final Cursor cursor) {
         this(cursor, false);
+    }
+
+   public <T extends ${tableName}> ${tableName}(T in) {
+        convert(in);
     }
 
     public ${tableName}(final Cursor cursor, boolean prependTableName) {
@@ -74,15 +88,17 @@ public class ${tableName} {
         return mRowId;
     }
 
-    public void setRowId(long _id) {
+    public ${tableName} setRowId(long _id) {
         mRowId = _id;
         mValues.put(${tableName}Table._ID, _id);
+        return this;
     }
 #foreach ($field in $fields)
 #if($field)
-    public void set${field.getNameAsTitleCase()}(${field.getJavaTypeString()} ${field.getFieldName()}) {
+    public ${tableName} set${field.getNameAsTitleCase()}(${field.getJavaTypeString()} ${field.getFieldName()}) {
         ${field.getPrivateVariableName()} = ${field.getFieldName()};
         mValues.put(${tableName}Table.${field.getConstantString()}, ${field.getFieldName()});
+        return this;
     }
 
     public ${field.getJavaTypeString()} get${field.getNameAsTitleCase()}() {
@@ -100,9 +116,10 @@ public class ${tableName} {
 #set( $foreignKeyPrivateVariableName = $relationship.getForeignKeyPrivateVariableNameForTable($table) )
 #set( $foreignKeyConstant = $relationship.getForeignKeyNameForTable($table) )
 #if( $foreignKeyTitleCase )
-    public void set${foreignKeyTitleCase}(Long ${foreignKeyVariableName}) {
+    public ${tableName} set${foreignKeyTitleCase}(Long ${foreignKeyVariableName}) {
         ${foreignKeyPrivateVariableName} = ${foreignKeyVariableName};
         mValues.put(${tableName}Table.${foreignKeyConstant}, ${foreignKeyVariableName});
+        return this;
     }
 
     public Long get${foreignKeyTitleCase}() {
@@ -124,4 +141,94 @@ public class ${tableName} {
 
         return list;
     }
+
+
+    public <T extends ${tableName}> void convert(T in) {
+        setRowId(in.getRowId());
+
+#foreach ($field in $fields)
+#if($field)
+        set${field.getNameAsTitleCase()}(in.get${field.getNameAsTitleCase()}());
+#end
+#end
+
+#if( $participatingRelationships )
+#foreach( $relationship in $participatingRelationships )
+#set( $foreignKeyTitleCase = $relationship.getForeignKeyVariableAsTitleCase($table) )
+#if( $foreignKeyTitleCase )
+        set${foreignKeyTitleCase}(in.get${foreignKeyTitleCase}());
+#end
+#end
+#end
+    }
+
+    public static ${tableName} get${tableName}ById(Context context, int id) {
+        Cursor cursor = context.getContentResolver().query(${providerName}Provider.${tableConstantName}_CONTENT_URI, null, ${tableName}Table.WHERE_ID_EQUALS, new String[]{String.valueOf(id)}, null);
+#set( $varName = $tableName.toLowerCase() )
+        ${tableName} ${varName};
+        if (cursor != null && cursor.moveToFirst()) {
+            ${varName} = new ${tableName}(cursor);
+        } else {
+            ${varName} = new ${tableName}();
+        }
+        return ${varName};
+    }
+
+    @Override
+    public String toString() {
+        return "id:" + getRowId()
+
+#foreach ($field in $fields)
+#if($field)
+               + " - ${field.getFieldName()}: " + get${field.getNameAsTitleCase()}()
+#end
+#end
+
+#if( $participatingRelationships )
+#foreach( $relationship in $participatingRelationships )
+#set( $foreignKeyTitleCase = $relationship.getForeignKeyVariableAsTitleCase($table) )
+#set( $foreignKey = $relationship.getForeignKeyNameForTable($table).toLowerCase() )
+#if( $foreignKey )
+               + " - ${foreignKey}: " + get${foreignKeyTitleCase}()
+#end
+#end
+#end
+               ;
+    }
+#if( $participatingRelationships )
+#foreach( $relationship in $participatingRelationships )
+#set( $foreignKeyTitleCase = $relationship.getForeignKeyVariableAsTitleCase($table) )
+#set( $foreignKeyVariableName = $relationship.getForeignKeyVariableNameForTable($table) )
+#set( $foreignKeyPrivateVariableName = $relationship.getForeignKeyPrivateVariableNameForTable($table) )
+#set( $foreignKeyConstant = $relationship.getForeignKeyNameForTable($table) )
+#if( $foreignKeyTitleCase )
+
+    public List<${tableName}> get${tableName}sBy${foreignKeyTitleCase}(Context context, Long ${foreignKeyVariableName}) {
+        Cursor cursor = context.getContentResolver().query(${providerName}Provider.${tableConstantName}_CONTENT_URI, null, ${tableName}Table.WHERE_${foreignKeyConstant}_EQUALS, new String[]{String.valueOf(${foreignKeyVariableName})}, null);
+        return listFromCursor(cursor);
+    }
+
+#end
+#end
+#end
+
+
+#if( $participatingExternalRelationships )
+#foreach( $relationship in $participatingExternalRelationships )
+#set( $foreignClassName = $relationship.getRightTableClassName() )
+#set( $foreignClassConstant = $relationship.getRightTableConstantName() )
+#set( $foreignKey = $relationship.getLeftTableForeignKey() )
+#if( $foreignClassName )
+
+    public List<${foreignClassName}> get${foreignClassName}s(Context context) {
+        Cursor c = context.getContentResolver().query(${providerName}Provider.${foreignClassConstant}_CONTENT_URI, null, ${foreignClassName}Table.WHERE_${foreignKey}_EQUALS,new String[]{String.valueOf(getRemoteId())},null);
+        return ${foreignClassName}.listFromCursor(c);
+    }
+#end
+#end
+#end
+
+
+
+
 }

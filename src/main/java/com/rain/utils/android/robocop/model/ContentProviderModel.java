@@ -2,15 +2,10 @@ package com.rain.utils.android.robocop.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Console;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created with IntelliJ IDEA.
- * User: dustin
- * Date: 1/15/14
- * Time: 9:46 AM
- */
 public class ContentProviderModel {
 
     @SerializedName("packageName")
@@ -58,13 +53,33 @@ public class ContentProviderModel {
     }
 
     public List<ContentProviderRelationshipModel> getRelationshipsForTable(ContentProviderTableModel tableModel) {
+        System.out.println();
+        System.out.println("Check relationship for " + tableModel.getTableName() + "!");
         if (tableModel == null || mRelationships == null) return null;
         List<ContentProviderRelationshipModel> includedRelationships = new ArrayList<ContentProviderRelationshipModel>();
         for (ContentProviderRelationshipModel relationship : mRelationships) {
-            if (relationship.getLeftTableModel() == tableModel || relationship.getRightTableModel() == tableModel) {
+            if (relationship.getLeftTableModel() != tableModel && relationship.getRightTableModel() == tableModel) {
+                System.out.println("Adding " + relationship.getLeftTableName() + " -> " + relationship.getRightTableName() + "!");
                 includedRelationships.add(relationship);
             }
         }
+        System.out.println("included Relationships size = " + includedRelationships.size());
+        return includedRelationships;
+    }
+
+
+    public List<ContentProviderRelationshipModel> getExternalRelationshipsForTable(ContentProviderTableModel tableModel) {
+        System.out.println();
+        System.out.println("Check external relationship for " + tableModel.getTableName() + "!");
+        if (tableModel == null || mRelationships == null) return null;
+        List<ContentProviderRelationshipModel> includedRelationships = new ArrayList<ContentProviderRelationshipModel>();
+        for (ContentProviderRelationshipModel relationship : mRelationships) {
+            if (relationship.getLeftTableModel() == tableModel && relationship.getRightTableModel() != tableModel) {
+                System.out.println("Adding " + relationship.getLeftTableName() + " -> " + relationship.getRightTableName() + "!");
+                includedRelationships.add(relationship);
+            }
+        }
+        System.out.println("included external Relationships size = " + includedRelationships.size());
         return includedRelationships;
     }
 
@@ -75,7 +90,7 @@ public class ContentProviderModel {
                 String rightTableName = relationship.getRightTableName();
                 if (leftTableName == null || leftTableName.length() == 0 || rightTableName == null || rightTableName.length() == 0) {
                     //invalid relationship config, bail
-                    System.out.println("invalid relationship config!!! one of the table names is missin or is blank");
+                    System.out.println("invalid relationship config!!! one of the table names is missing or is blank");
                     return;
                 }
                 ContentProviderTableModel leftTable = null;
